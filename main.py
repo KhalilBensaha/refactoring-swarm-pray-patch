@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 
 from src.agents.auditor_agent import run_auditor
-from agents.fixer import fixer_agent
+from src.agents.fixer_agent import fixer_agent
 
 load_dotenv()
 
