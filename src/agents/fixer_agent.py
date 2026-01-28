@@ -1,6 +1,9 @@
 import os
 from src.utils.logger import log_experiment, ActionType
 
+MODEL_NAME = "gemini-1.5-flash"
+
+
 def fixer_agent(analysis_json: dict, target_dir: str):
     """
     Applies minimal fixes based on auditor analysis.
