@@ -44,7 +44,8 @@ def log_experiment(agent_name: str, model_used: str, action: ActionType, details
     # --- 2. VALIDATION STRICTE DES DONNÉES (Prompts) ---
     # Pour l'analyse scientifique, nous avons absolument besoin du prompt et de la réponse
     # pour les actions impliquant une interaction majeure avec le code.
-    if action_str in [ActionType.ANALYSIS, ActionType.GENERATION, ActionType.DEBUG, ActionType.FIX]:
+    # action_str is a plain string; compare against Enum values
+    if action_str in {a.value for a in ActionType}:
         required_keys = ["input_prompt", "output_response"]
         missing_keys = [key for key in required_keys if key not in details]
         
