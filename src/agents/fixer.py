@@ -15,6 +15,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from src.utils.logger import log_experiment, ActionType
+from src.utils.quota_manager import configure_gemini_retry, invoke_llm
 from src.tools.file_tools import read_file_safe, write_file_safe, get_relative_path
 from src.agents.auditor import RefactoringPlan, CodeIssue
 
@@ -52,6 +53,8 @@ class FixerAgent:
             sandbox_dir: Path to the sandbox directory containing code to fix
         """
         self.sandbox_dir = os.path.abspath(sandbox_dir)
+        # Reduce long retry/backoff behavior on quota errors.
+        configure_gemini_retry()
         self.llm = ChatGoogleGenerativeAI(
             model=self.MODEL_NAME,
             temperature=0,  # Deterministic outputs as required
@@ -156,7 +159,7 @@ Do not include markdown code blocks or explanations."""
                 SystemMessage(content=system_prompt),
                 HumanMessage(content=fix_prompt)
             ]
-            response = self.llm.invoke(messages)
+            response = invoke_llm(self.llm, messages)
             fixed_code = response.content
             
             # Clean up the response (remove markdown if present)

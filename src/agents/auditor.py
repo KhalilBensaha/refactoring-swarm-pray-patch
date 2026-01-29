@@ -12,6 +12,7 @@ Uses ActionType.ANALYSIS for all LLM interactions.
 """
 
 import os
+import re
 from typing import Dict, List, Optional
 from dataclasses import dataclass, field
 
@@ -19,6 +20,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from src.utils.logger import log_experiment, ActionType
+from src.utils.quota_manager import configure_gemini_retry, invoke_llm
 from src.tools.file_tools import read_file_safe, list_python_files, get_relative_path
 from src.tools.analysis_tools import run_pylint
 
@@ -66,6 +68,8 @@ class AuditorAgent:
             sandbox_dir: Path to the sandbox directory containing code to analyze
         """
         self.sandbox_dir = os.path.abspath(sandbox_dir)
+        # Reduce long retry/backoff behavior on quota errors.
+        configure_gemini_retry()
         self.llm = ChatGoogleGenerativeAI(
             model=self.MODEL_NAME,
             temperature=0,  # Deterministic outputs as required
@@ -74,35 +78,45 @@ class AuditorAgent:
     
     def _build_system_prompt(self) -> str:
         """Build the system prompt for the Auditor."""
-        return """You are an expert Python Code Auditor. Your role is to analyze Python code and identify:
+        return """You are an expert Python Code Auditor. Your role is to find ALL bugs in Python code.
 
-1. **Logic Errors**: Bugs, incorrect algorithms, off-by-one errors
-2. **Bad Practices**: Anti-patterns, code smells, violations of PEP 8
-3. **Potential Bugs**: Unhandled exceptions, type mismatches, undefined variables
-4. **Performance Issues**: Inefficient algorithms, unnecessary operations
+Look for these common bugs:
+1. **Wrong operators**: + instead of -, == instead of !=, etc.
+2. **Missing edge cases**: empty list, zero, negative numbers, empty string
+3. **Infinite loops**: while loops that never terminate (e.g., replacing empty string)
+4. **Off-by-one errors**: wrong range bounds, wrong slice indices
+5. **Missing return statements** or returning wrong values
+6. **Unhandled exceptions**: division by zero, index out of range
+7. **Syntax errors**: indentation, missing colons, undefined variables
 
-For each issue found, you MUST provide:
-- The exact file name
-- The line number (if identifiable)
-- The type of issue (error/warning/convention/refactor)
-- A clear description of the problem
-- A specific suggested fix
+You MUST output issues in this EXACT format (one per issue, separated by ---):
 
-Output your analysis in a STRUCTURED format that can be parsed.
-Be thorough but focus on the MOST CRITICAL issues first.
-Do NOT suggest changes to test files unless they have syntax errors.
-
-Format each issue as:
 FILE: <filename>
-LINE: <line_number or "N/A">
-TYPE: <error|warning|convention|refactor>
-ISSUE: <description>
-FIX: <suggested fix>
----"""
+LINE: <line_number or N/A>
+TYPE: error
+ISSUE: <description of the bug>
+FIX: <exact code change needed>
+---
+
+Be AGGRESSIVE - if the code could fail for ANY input, report it as an error.
+Do NOT say "no issues found" - look harder for edge cases and logic bugs."""
     
-    def _build_analysis_prompt(self, file_path: str, code: str, pylint_output: str) -> str:
+    def _build_analysis_prompt(
+        self,
+        file_path: str,
+        code: str,
+        pylint_output: str,
+        extra_context: Optional[str] = None,
+    ) -> str:
         """Build the analysis prompt for a specific file."""
         relative_path = get_relative_path(file_path, self.sandbox_dir)
+
+        extra = ""
+        if extra_context:
+            extra = (
+                "\n\n**Additional runtime/test feedback (use this to find root causes)**:\n"
+                f"```\n{extra_context[:2500]}\n```\n"
+            )
         
         return f"""Analyze the following Python code and identify all issues.
 
@@ -112,6 +126,7 @@ FIX: <suggested fix>
 ```
 {pylint_output[:2000]}  # Truncate if too long
 ```
+{extra}
 
 **Code to Analyze**:
 ```python
@@ -126,7 +141,7 @@ Identify ALL issues in this code. Focus on:
 
 Provide your analysis in the structured format specified."""
     
-    def analyze_file(self, file_path: str, pylint_output: str) -> List[CodeIssue]:
+    def analyze_file(self, file_path: str, pylint_output: str, extra_context: Optional[str] = None) -> List[CodeIssue]:
         """
         Analyze a single Python file.
         
@@ -156,7 +171,12 @@ Provide your analysis in the structured format specified."""
         
         # Build prompts
         system_prompt = self._build_system_prompt()
-        analysis_prompt = self._build_analysis_prompt(file_path, code, pylint_output)
+        analysis_prompt = self._build_analysis_prompt(
+            file_path,
+            code,
+            pylint_output,
+            extra_context=extra_context,
+        )
         
         # Call the LLM
         input_prompt = f"{system_prompt}\n\n{analysis_prompt}"
@@ -166,7 +186,7 @@ Provide your analysis in the structured format specified."""
                 SystemMessage(content=system_prompt),
                 HumanMessage(content=analysis_prompt)
             ]
-            response = self.llm.invoke(messages)
+            response = invoke_llm(self.llm, messages)
             output_response = response.content
             
             # Log this interaction
@@ -213,35 +233,46 @@ Provide your analysis in the structured format specified."""
         """Parse the LLM response into CodeIssue objects."""
         issues = []
         
-        # Split by issue separator
-        issue_blocks = response.split('---')
+        # Split by issue separator (handle various formats)
+        issue_blocks = re.split(r'---+|\n\n(?=FILE:)', response)
         
         for block in issue_blocks:
             block = block.strip()
-            if not block:
+            if not block or 'no issues' in block.lower():
                 continue
             
             # Parse each field
             file_name = default_file
             line = None
-            issue_type = "warning"
+            issue_type = "error"  # Default to error to ensure Fixer acts
             description = ""
             fix = ""
             
             for line_text in block.split('\n'):
                 line_text = line_text.strip()
-                if line_text.startswith('FILE:'):
+                line_upper = line_text.upper()
+                
+                if line_upper.startswith('FILE:'):
                     file_name = line_text[5:].strip()
-                elif line_text.startswith('LINE:'):
+                elif line_upper.startswith('LINE:'):
                     line_str = line_text[5:].strip()
-                    if line_str.isdigit():
-                        line = int(line_str)
-                elif line_text.startswith('TYPE:'):
+                    # Extract first number found
+                    nums = re.findall(r'\d+', line_str)
+                    if nums:
+                        line = int(nums[0])
+                elif line_upper.startswith('TYPE:'):
                     issue_type = line_text[5:].strip().lower()
-                elif line_text.startswith('ISSUE:'):
+                elif line_upper.startswith('ISSUE:'):
                     description = line_text[6:].strip()
-                elif line_text.startswith('FIX:'):
+                elif line_upper.startswith('FIX:'):
                     fix = line_text[4:].strip()
+                elif line_upper.startswith('SUGGESTED FIX:'):
+                    fix = line_text[14:].strip()
+            
+            # Also try to extract from unstructured text if no description found
+            if not description and ('bug' in block.lower() or 'error' in block.lower()):
+                description = block[:200]
+                issue_type = "error"
             
             if description:  # Only add if we have a description
                 issues.append(CodeIssue(
@@ -254,7 +285,7 @@ Provide your analysis in the structured format specified."""
         
         return issues
     
-    def run(self) -> RefactoringPlan:
+    def run(self, extra_context: Optional[str] = None) -> RefactoringPlan:
         """
         Run the complete audit process.
         
@@ -292,7 +323,7 @@ Provide your analysis in the structured format specified."""
             relative_path = get_relative_path(file_path, self.sandbox_dir)
             print(f"   📄 Analyzing: {relative_path}")
             
-            issues = self.analyze_file(file_path, pylint_result.output)
+            issues = self.analyze_file(file_path, pylint_result.output, extra_context=extra_context)
             all_issues.extend(issues)
             files_analyzed.append(relative_path)
         

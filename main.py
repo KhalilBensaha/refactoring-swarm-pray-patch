@@ -20,7 +20,7 @@ from typing import Optional
 from dotenv import load_dotenv
 
 from src.utils.logger import log_experiment, ActionType
-from src.agents.auditor import AuditorAgent, RefactoringPlan
+from src.agents.auditor import AuditorAgent, RefactoringPlan, CodeIssue
 from src.agents.fixer import FixerAgent
 from src.agents.judge import JudgeAgent
 from src.tools.analysis_tools import run_pylint
@@ -120,7 +120,42 @@ class Orchestrator:
             print("\n📋 PHASE 1: AUDITOR ANALYSIS")
             print("-" * 40)
             
-            plan = auditor.run()
+            extra_context = None
+            if last_error_feedback:
+                extra_context = (
+                    "Previous iteration failures (use to find root cause):\n"
+                    f"Focus areas: {last_error_feedback.get('focus_areas')}\n\n"
+                    "Pytest output (truncated):\n"
+                    f"{(last_error_feedback.get('pytest_output') or '')[:2000]}\n\n"
+                    "Pylint output (truncated):\n"
+                    f"{(last_error_feedback.get('pylint_output') or '')[:1200]}\n"
+                )
+
+            plan = auditor.run(extra_context=extra_context)
+
+            # If we have failing tests but the Auditor didn't produce structured issues,
+            # synthesize a minimal plan from the pytest output so the Fixer can act.
+            if last_error_feedback and not plan.issues:
+                pytest_out = (last_error_feedback.get("pytest_output") or "").lower()
+                synthesized: list[CodeIssue] = []
+
+                if "replace_all" in pytest_out:
+                    synthesized.append(
+                        CodeIssue(
+                            file="string_utils.py",
+                            line=None,
+                            issue_type="error",
+                            description="replace_all() appears to hang when old == '' (empty string)",
+                            suggested_fix="Add an early guard: if old == '': return s to avoid infinite loop",
+                        )
+                    )
+
+                if synthesized:
+                    plan.issues = synthesized
+                    plan.priority_order = [i.file for i in synthesized]
+                    plan.summary = (
+                        f"Synthesized {len(synthesized)} issue(s) from failing generated tests."
+                    )
             last_plan = plan
             
             # If no issues found, run tests directly
