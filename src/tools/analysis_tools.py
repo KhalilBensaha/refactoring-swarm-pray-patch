@@ -3,6 +3,7 @@ Analysis Tools - Interfaces for pylint and pytest.
 Manages the interfaces to the analysis (pylint) and testing (pytest) tools.
 """
 
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -32,7 +33,7 @@ class PytestResult:
     success: bool
 
 
-def run_pylint(target_dir: str) -> PylintResult:
+def run_pylint(target_dir: str, *, check_docstrings: bool = True) -> PylintResult:
     """
     Run pylint on all Python files in the target directory.
     
@@ -70,13 +71,17 @@ def run_pylint(target_dir: str) -> PylintResult:
         )
     
     try:
+        disable_rules = []
+        if not check_docstrings:
+            disable_rules.extend(["C0114", "C0115", "C0116"])  # missing-module/class/function-docstring
+
         # Run pylint with parseable output
         result = subprocess.run(
             [
                 sys.executable, "-m", "pylint",
                 "--output-format=text",
                 "--score=y",
-                "--disable=C0114,C0115,C0116",  # Disable missing docstring warnings
+                *( [f"--disable={','.join(disable_rules)}"] if disable_rules else [] ),
                 *py_files
             ],
             capture_output=True,
@@ -140,7 +145,12 @@ def run_pylint(target_dir: str) -> PylintResult:
         )
 
 
-def run_pytest(target_dir: str) -> PytestResult:
+def run_pytest(
+    target_dir: str,
+    *,
+    tests_dir: Optional[str] = None,
+    source_dir: Optional[str] = None,
+) -> PytestResult:
     """
     Run pytest on the target directory.
     
@@ -161,8 +171,19 @@ def run_pytest(target_dir: str) -> PytestResult:
             success=False
         )
     
+    tests_path = Path(tests_dir).resolve() if tests_dir else target_path
+
+    if not tests_path.exists():
+        return PytestResult(
+            passed=0,
+            failed=0,
+            errors=1,
+            output=f"Tests directory not found: {tests_path}",
+            success=False,
+        )
+
     # Check if there are any test files
-    test_files = list(target_path.rglob("test_*.py"))
+    test_files = list(tests_path.rglob("test_*.py"))
     if not test_files:
         return PytestResult(
             passed=0,
@@ -174,10 +195,18 @@ def run_pytest(target_dir: str) -> PytestResult:
     
     try:
         # Run pytest with verbose output
+        env = dict(**os.environ)
+        if source_dir:
+            source_path = str(Path(source_dir).resolve())
+            existing = env.get("PYTHONPATH", "")
+            env["PYTHONPATH"] = (
+                source_path if not existing else f"{source_path}{os.pathsep}{existing}"
+            )
+
         result = subprocess.run(
             [
                 sys.executable, "-m", "pytest",
-                str(target_path),
+                str(tests_path),
                 "-v",
                 "--tb=short",
                 "-q"
@@ -185,7 +214,8 @@ def run_pytest(target_dir: str) -> PytestResult:
             capture_output=True,
             text=True,
             timeout=120,
-            cwd=str(target_path)
+            cwd=str(tests_path),
+            env=env,
         )
         
         output = result.stdout + result.stderr
