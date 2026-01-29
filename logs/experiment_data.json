@@ -91,5 +91,469 @@
             "output_response": "Okay, here's an analysis of the provided Python code:\n\n**Code:**\n\n```python\ndef divide(a, b):\n    return a / b\n\nprint(divide(10, 0))\n```\n\n**Analysis:**\n\n*   **Bugs and Logical Errors:**\n\n    *   **ZeroDivisionError:** The most obvious and critical bug is the potential for a `ZeroDivisionError`. The `divide` function does not check if `b` is zero before performing the division. When `b` is zero, as in the `print(divide(10, 0))` call, the program will crash with a `ZeroDivisionError`.\n\n*   **Bad Practices:**\n\n    *   **Lack of Error Handling:** The function lacks any error handling. It doesn't attempt to gracefully handle the case where `b` is zero. A robust function should either raise a more informative exception or return a specific value (e.g., `None`) to indicate an error.\n    *   **Missing Input Validation:** The function doesn't validate the input types. While Python is dynamically typed, it's good practice to ensure that the inputs are of the expected type (e.g., numbers) to prevent unexpected behavior.\n\n*   **Potential Runtime Risks:**\n\n    *   **Program Termination:** As mentioned earlier, the `ZeroDivisionError` will cause the program to terminate abruptly if not caught.\n    *   **Unpredictable Behavior (if error is somehow masked):** If the `ZeroDivisionError` were somehow masked (e.g., by a very broad `try...except` block that catches *all* exceptions without re-raising or handling them properly), the program might continue to execute with potentially incorrect or corrupted data, leading to unpredictable behavior later on.\n    *   **Security Implications (less likely in this specific example, but generally important):** While not directly applicable here, lack of input validation can sometimes open doors to security vulnerabilities. For example, if the inputs came from user input, a malicious user might be able to inject unexpected data that could cause the program to behave in unintended ways.\n\n**Summary:**\n\nThe code is a very simple division function that lacks essential error handling and input validation. The most critical issue is the potential for a `ZeroDivisionError`, which will cause the program to crash. The absence of error handling and input validation are considered bad practices that can lead to runtime risks and potentially unpredictable behavior.\n"
         },
         "status": "SUCCESS"
+    },
+    {
+        "id": "4fc17827-07cc-49c4-a2cb-57df7b21eb77",
+        "timestamp": "2026-01-29T11:37:47.403943",
+        "agent": "Orchestrator",
+        "model": "system",
+        "action": "CODE_ANALYSIS",
+        "details": {
+            "event_type": "STARTUP",
+            "input_prompt": "System event: STARTUP",
+            "output_response": "Starting refactoring swarm on /home/khalil/igl/refactoring-swarm-template/sandbox",
+            "iteration": 0,
+            "target_dir": "/home/khalil/igl/refactoring-swarm-template/sandbox"
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "a88f8098-29d3-4bdc-accc-e1903f00c7d7",
+        "timestamp": "2026-01-29T11:37:53.991329",
+        "agent": "Auditor_Agent",
+        "model": "gemini-2.0-flash",
+        "action": "CODE_ANALYSIS",
+        "details": {
+            "file_analyzed": "bad.py",
+            "input_prompt": "You are an expert Python Code Auditor. Your role is to analyze Python code and identify:\n\n1. **Logic Errors**: Bugs, incorrect algorithms, off-by-one errors\n2. **Bad Practices**: Anti-patterns, code smells, violations of PEP 8\n3. **Potential Bugs**: Unhandled exceptions, type mismatches, undefined variables\n4. **Performance Issues**: Inefficient algorithms, unnecessary operations\n\nFor each issue found, you MUST provide:\n- The exact file name\n- The line number (if identifiable)\n- The type of issue (error/warning/convention/refactor)\n- A clear description of the problem\n- A specific suggested fix\n\nOutput your analysis in a STRUCTURED format that can be parsed.\nBe thorough but focus on the MOST CRITICAL issues first.\nDo NOT suggest changes to test files unless they have syntax errors.\n\nFormat each issue as:\nFILE: <filename>\nLINE: <line_number or \"N/A\">\nTYPE: <error|warning|convention|refactor>\nISSUE: <description>\nFIX: <suggested fix>\n---\n\nAnalyze the following Python code and identify all issues.\n\n**File**: bad.py\n\n**Pylint Output for context**:\n```\n\n--------------------------------------------------------------------\nYour code has been rated at 10.00/10 (previous run: 10.00/10, +0.00)\n\n  # Truncate if too long\n```\n\n**Code to Analyze**:\n```python\ndef divide(a, b):\n    return a / b\n\nprint(divide(10, 0))\n\n```\n\nIdentify ALL issues in this code. Focus on:\n1. Syntax errors that would prevent execution\n2. Logic bugs that would cause incorrect behavior\n3. Bad practices that violate Python conventions\n4. Potential runtime errors\n\nProvide your analysis in the structured format specified.",
+            "output_response": "FILE: bad.py\nLINE: 2\nTYPE: error\nISSUE: Division by zero. The function `divide` does not handle the case where `b` is zero, leading to a `ZeroDivisionError`.\nFIX: Add a check for `b == 0` and either return a default value (e.g., `None` or `float('inf')`) or raise an exception with a more informative message. For example:\n\n```python\ndef divide(a, b):\n    if b == 0:\n        return None  # Or raise an exception: raise ValueError(\"Cannot divide by zero\")\n    return a / b\n\nprint(divide(10, 0))\n```\n---\nFILE: bad.py\nLINE: 4\nTYPE: warning\nISSUE: Unhandled exception. The `ZeroDivisionError` raised by `divide(10, 0)` is not caught, causing the program to terminate abruptly.\nFIX: Wrap the call to `divide` in a `try...except` block to handle the potential `ZeroDivisionError`. For example:\n\n```python\ndef divide(a, b):\n    if b == 0:\n        return None  # Or raise an exception: raise ValueError(\"Cannot divide by zero\")\n    return a / b\n\ntry:\n    result = divide(10, 0)\n    print(result)\nexcept ZeroDivisionError:\n    print(\"Error: Division by zero\")\n```\n---\nFILE: bad.py\nLINE: N/A\nTYPE: convention\nISSUE: Missing docstrings. The function `divide` lacks a docstring explaining its purpose, arguments, and return value.\nFIX: Add a docstring to the function. For example:\n\n```python\ndef divide(a, b):\n    \"\"\"Divides two numbers.\n\n    Args:\n        a: The numerator.\n        b: The denominator.\n\n    Returns:\n        The result of the division, or None if the denominator is zero.\n    \"\"\"\n    if b == 0:\n        return None  # Or raise an exception: raise ValueError(\"Cannot divide by zero\")\n    return a / b\n\nprint(divide(10, 0))\n```\n---\n",
+            "code_length": 57
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "7591a39b-4d79-47e0-a2a1-1422086bab1b",
+        "timestamp": "2026-01-29T11:37:55.660847",
+        "agent": "Fixer_Agent",
+        "model": "gemini-2.0-flash",
+        "action": "FIX",
+        "details": {
+            "file_fixed": "bad.py",
+            "input_prompt": "You are an expert Python Code Fixer. Your role is to apply MINIMAL, TARGETED fixes to Python code.\n\nCRITICAL RULES:\n1. Make the SMALLEST possible changes to fix the issues\n2. Do NOT rewrite entire functions unless absolutely necessary\n3. Preserve the original code structure and style\n4. Fix only the specific issues mentioned\n5. Do NOT add new features or refactor for style\n6. Ensure the fixed code is syntactically correct\n7. Do NOT change test files unless they have syntax errors\n\nWhen fixing code:\n- Fix logic errors\n- Fix syntax errors\n- Fix incorrect variable names or typos\n- Fix incorrect operators or conditions\n- Add missing imports if needed\n- Fix indentation issues\n\nOUTPUT FORMAT:\nYou must return ONLY the complete fixed Python code.\nDo not include any explanations before or after the code.\nDo not use markdown code blocks - just return the raw Python code.\nThe code must be complete and ready to save to a file.\n\nFix the following Python code based on the identified issues.\n\n**File**: bad.py\n\n**Issues to Fix**:\n- Line 2: [ERROR] Division by zero. The function `divide` does not handle the case where `b` is zero, leading to a `ZeroDivisionError`.\n  Suggested fix: Add a check for `b == 0` and either return a default value (e.g., `None` or `float('inf')`) or raise an exception with a more informative message. For example:\n- Line 4: [WARNING] Unhandled exception. The `ZeroDivisionError` raised by `divide(10, 0)` is not caught, causing the program to terminate abruptly.\n  Suggested fix: Wrap the call to `divide` in a `try...except` block to handle the potential `ZeroDivisionError`. For example:\n- Line N/A: [CONVENTION] Missing docstrings. The function `divide` lacks a docstring explaining its purpose, arguments, and return value.\n  Suggested fix: Add a docstring to the function. For example:\n\n**Original Code**:\n```python\ndef divide(a, b):\n    return a / b\n\nprint(divide(10, 0))\n\n```\n\nApply MINIMAL fixes to address the issues listed above.\nReturn ONLY the complete fixed Python code, nothing else.\nDo not include markdown code blocks or explanations.",
+            "output_response": "def divide(a, b):\n    \"\"\"Divides two numbers.\n\n    Args:\n        a: The numerator.\n        b: The denominator.\n\n    Returns:\n        The result of the division, or None if the denominator is zero.\n    \"\"\"\n    if b == 0:\n        return None\n    return a / b\n\ntry:\n    print(divide(10, 0))\nexcept ZeroDivisionError as e:\n    print(f\"Error: Division by zero: {e}\")",
+            "issues_addressed": 3,
+            "original_length": 57,
+            "fixed_length": 361
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "3e467f52-328a-47df-8f04-50d6f92aab51",
+        "timestamp": "2026-01-29T11:37:56.597589",
+        "agent": "Judge_Agent",
+        "model": "gemini-2.0-flash",
+        "action": "DEBUG",
+        "details": {
+            "iteration": 1,
+            "input_prompt": "Evaluate code in /home/khalil/igl/refactoring-swarm-template/sandbox",
+            "output_response": "✅ All tests passed! Pytest: 0 passed. Pylint score: 8.75/10.",
+            "tests_passed": true,
+            "pytest_passed": 0,
+            "pytest_failed": 0,
+            "pytest_errors": 0,
+            "pylint_score": 8.75,
+            "recommendation": "PASS"
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "99a226c7-4f47-4ffb-b4ff-4540320df616",
+        "timestamp": "2026-01-29T11:37:56.599830",
+        "agent": "Orchestrator",
+        "model": "system",
+        "action": "CODE_ANALYSIS",
+        "details": {
+            "event_type": "MISSION_COMPLETE",
+            "input_prompt": "System event: MISSION_COMPLETE",
+            "output_response": "Tests passed after 1 iterations. Pylint: 10.0 → 8.75",
+            "iteration": 1,
+            "target_dir": "/home/khalil/igl/refactoring-swarm-template/sandbox"
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "6c9eec45-fad3-4e73-8ec1-b758a3cea27f",
+        "timestamp": "2026-01-29T21:01:15.568273",
+        "agent": "Orchestrator",
+        "model": "system",
+        "action": "CODE_ANALYSIS",
+        "details": {
+            "event_type": "STARTUP",
+            "input_prompt": "System event: STARTUP",
+            "output_response": "Starting refactoring swarm on /home/khalil/igl/refactoring-swarm-template/sandbox",
+            "iteration": 0,
+            "target_dir": "/home/khalil/igl/refactoring-swarm-template/sandbox"
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "24d581ec-b175-46bc-85cc-918658ceeea3",
+        "timestamp": "2026-01-29T21:01:21.786428",
+        "agent": "Auditor_Agent",
+        "model": "gemini-2.0-flash",
+        "action": "CODE_ANALYSIS",
+        "details": {
+            "file_analyzed": "bad.py",
+            "input_prompt": "You are an expert Python Code Auditor. Your role is to analyze Python code and identify:\n\n1. **Logic Errors**: Bugs, incorrect algorithms, off-by-one errors\n2. **Bad Practices**: Anti-patterns, code smells, violations of PEP 8\n3. **Potential Bugs**: Unhandled exceptions, type mismatches, undefined variables\n4. **Performance Issues**: Inefficient algorithms, unnecessary operations\n\nFor each issue found, you MUST provide:\n- The exact file name\n- The line number (if identifiable)\n- The type of issue (error/warning/convention/refactor)\n- A clear description of the problem\n- A specific suggested fix\n\nOutput your analysis in a STRUCTURED format that can be parsed.\nBe thorough but focus on the MOST CRITICAL issues first.\nDo NOT suggest changes to test files unless they have syntax errors.\n\nFormat each issue as:\nFILE: <filename>\nLINE: <line_number or \"N/A\">\nTYPE: <error|warning|convention|refactor>\nISSUE: <description>\nFIX: <suggested fix>\n---\n\nAnalyze the following Python code and identify all issues.\n\n**File**: bad.py\n\n**Pylint Output for context**:\n```\n************* Module bad\nbad.py:18:0: C0304: Final newline missing (missing-final-newline)\nbad.py:1:0: C0114: Missing module docstring (missing-module-docstring)\n\n------------------------------------------------------------------\nYour code has been rated at 7.50/10 (previous run: 7.50/10, +0.00)\n\n  # Truncate if too long\n```\n\n**Code to Analyze**:\n```python\ndef divide(a, b):\n    \"\"\"Divides two numbers.\n\n    Args:\n        a: The numerator.\n        b: The denominator.\n\n    Returns:\n        The result of the division, or None if the denominator is zero.\n    \"\"\"\n    if b == 0:\n        return None\n    return a / b\n\ntry:\n    print(divide(10, 0))\nexcept ZeroDivisionError as e:\n    print(f\"Error: Division by zero: {e}\")\n```\n\nIdentify ALL issues in this code. Focus on:\n1. Syntax errors that would prevent execution\n2. Logic bugs that would cause incorrect behavior\n3. Bad practices that violate Python conventions\n4. Potential runtime errors\n\nProvide your analysis in the structured format specified.",
+            "output_response": "FILE: bad.py\nLINE: 11\nTYPE: warning\nISSUE: The function `divide` returns `None` when `b` is zero, but the calling code in the `try...except` block expects a `ZeroDivisionError`. This means the `except` block will never be executed when `b` is zero, and the function will return `None` which is then printed. This is misleading because the docstring suggests `None` is returned only if the denominator is zero, but the `try...except` block implies a `ZeroDivisionError` is raised.\nFIX: Raise a `ZeroDivisionError` in the `divide` function when `b` is zero to align with the `try...except` block and the expected behavior. Change the function to:\n\n```python\ndef divide(a, b):\n    \"\"\"Divides two numbers.\n\n    Args:\n        a: The numerator.\n        b: The denominator.\n\n    Returns:\n        The result of the division.\n\n    Raises:\n        ZeroDivisionError: If the denominator is zero.\n    \"\"\"\n    if b == 0:\n        raise ZeroDivisionError(\"Division by zero\")\n    return a / b\n```\n\nFILE: bad.py\nLINE: 1\nTYPE: convention\nISSUE: Missing module docstring. All modules should have a docstring to describe their purpose.\nFIX: Add a module-level docstring at the beginning of the file, e.g., `\"\"\"This module demonstrates a division function with error handling.\"\"\"`\n\nFILE: bad.py\nLINE: 18\nTYPE: convention\nISSUE: Missing final newline. PEP 8 recommends that all files should end with a newline character.\nFIX: Add a newline character at the end of the file.\n\nFILE: bad.py\nLINE: 14\nTYPE: refactor\nISSUE: The `try...except` block is catching a `ZeroDivisionError` which is redundant because the `divide` function currently returns `None` instead of raising the exception. After the fix to raise the exception, this `try...except` block will be necessary.\nFIX: No change needed after the fix to raise the exception.\n\nFILE: bad.py\nLINE: 7\nTYPE: convention\nISSUE: The docstring for the `divide` function is misleading. It states that the function returns `None` if the denominator is zero, but the `try...except` block suggests that a `ZeroDivisionError` is raised.\nFIX: Update the docstring to accurately reflect the function's behavior. After the fix to raise the exception, the docstring should be updated to indicate that a `ZeroDivisionError` is raised when the denominator is zero.\n",
+            "code_length": 361
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "e615e668-dae5-40e8-87e9-f086efcff5f2",
+        "timestamp": "2026-01-29T21:01:23.314270",
+        "agent": "Fixer_Agent",
+        "model": "gemini-2.0-flash",
+        "action": "FIX",
+        "details": {
+            "file_fixed": "bad.py",
+            "input_prompt": "You are an expert Python Code Fixer. Your role is to apply MINIMAL, TARGETED fixes to Python code.\n\nCRITICAL RULES:\n1. Make the SMALLEST possible changes to fix the issues\n2. Do NOT rewrite entire functions unless absolutely necessary\n3. Preserve the original code structure and style\n4. Fix only the specific issues mentioned\n5. Do NOT add new features or refactor for style\n6. Ensure the fixed code is syntactically correct\n7. Do NOT change test files unless they have syntax errors\n\nWhen fixing code:\n- Fix logic errors\n- Fix syntax errors\n- Fix incorrect variable names or typos\n- Fix incorrect operators or conditions\n- Add missing imports if needed\n- Fix indentation issues\n\nOUTPUT FORMAT:\nYou must return ONLY the complete fixed Python code.\nDo not include any explanations before or after the code.\nDo not use markdown code blocks - just return the raw Python code.\nThe code must be complete and ready to save to a file.\n\nFix the following Python code based on the identified issues.\n\n**File**: bad.py\n\n**Issues to Fix**:\n- Line 7: [CONVENTION] The docstring for the `divide` function is misleading. It states that the function returns `None` if the denominator is zero, but the `try...except` block suggests that a `ZeroDivisionError` is raised.\n  Suggested fix: Update the docstring to accurately reflect the function's behavior. After the fix to raise the exception, the docstring should be updated to indicate that a `ZeroDivisionError` is raised when the denominator is zero.\n\n**Original Code**:\n```python\ndef divide(a, b):\n    \"\"\"Divides two numbers.\n\n    Args:\n        a: The numerator.\n        b: The denominator.\n\n    Returns:\n        The result of the division, or None if the denominator is zero.\n    \"\"\"\n    if b == 0:\n        return None\n    return a / b\n\ntry:\n    print(divide(10, 0))\nexcept ZeroDivisionError as e:\n    print(f\"Error: Division by zero: {e}\")\n```\n\nApply MINIMAL fixes to address the issues listed above.\nReturn ONLY the complete fixed Python code, nothing else.\nDo not include markdown code blocks or explanations.",
+            "output_response": "def divide(a, b):\n    \"\"\"Divides two numbers.\n\n    Args:\n        a: The numerator.\n        b: The denominator.\n\n    Returns:\n        The result of the division.\n\n    Raises:\n        ZeroDivisionError: If the denominator is zero.\n    \"\"\"\n    if b == 0:\n        raise ZeroDivisionError(\"Cannot divide by zero\")\n    return a / b\n\ntry:\n    print(divide(10, 0))\nexcept ZeroDivisionError as e:\n    print(f\"Error: Division by zero: {e}\")",
+            "issues_addressed": 1,
+            "original_length": 361,
+            "fixed_length": 430
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "c8d95cfe-72b8-48fb-85a5-2d51cb43f7f5",
+        "timestamp": "2026-01-29T22:43:42.918190",
+        "agent": "Orchestrator",
+        "model": "system",
+        "action": "CODE_ANALYSIS",
+        "details": {
+            "event_type": "STARTUP",
+            "input_prompt": "System event: STARTUP",
+            "output_response": "Starting refactoring swarm on /home/khalil/igl/refactoring-swarm-template/sandbox",
+            "iteration": 0,
+            "target_dir": "/home/khalil/igl/refactoring-swarm-template/sandbox"
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "2ce1cf72-f781-49d5-a7eb-59e2f23780fb",
+        "timestamp": "2026-01-29T22:43:48.215991",
+        "agent": "Auditor_Agent",
+        "model": "gemini-2.0-flash",
+        "action": "CODE_ANALYSIS",
+        "details": {
+            "file_analyzed": "bad.py",
+            "input_prompt": "You are an expert Python Code Auditor. Your role is to analyze Python code and identify:\n\n1. **Logic Errors**: Bugs, incorrect algorithms, off-by-one errors\n2. **Bad Practices**: Anti-patterns, code smells, violations of PEP 8\n3. **Potential Bugs**: Unhandled exceptions, type mismatches, undefined variables\n4. **Performance Issues**: Inefficient algorithms, unnecessary operations\n\nFor each issue found, you MUST provide:\n- The exact file name\n- The line number (if identifiable)\n- The type of issue (error/warning/convention/refactor)\n- A clear description of the problem\n- A specific suggested fix\n\nOutput your analysis in a STRUCTURED format that can be parsed.\nBe thorough but focus on the MOST CRITICAL issues first.\nDo NOT suggest changes to test files unless they have syntax errors.\n\nFormat each issue as:\nFILE: <filename>\nLINE: <line_number or \"N/A\">\nTYPE: <error|warning|convention|refactor>\nISSUE: <description>\nFIX: <suggested fix>\n---\n\nAnalyze the following Python code and identify all issues.\n\n**File**: bad.py\n\n**Pylint Output for context**:\n```\n************* Module bad\nbad.py:21:0: C0304: Final newline missing (missing-final-newline)\nbad.py:1:0: C0114: Missing module docstring (missing-module-docstring)\n\n------------------------------------------------------------------\nYour code has been rated at 7.50/10 (previous run: 7.50/10, +0.00)\n\n  # Truncate if too long\n```\n\n\n**Code to Analyze**:\n```python\ndef divide(a, b):\n    \"\"\"Divides two numbers.\n\n    Args:\n        a: The numerator.\n        b: The denominator.\n\n    Returns:\n        The result of the division.\n\n    Raises:\n        ZeroDivisionError: If the denominator is zero.\n    \"\"\"\n    if b == 0:\n        raise ZeroDivisionError(\"Cannot divide by zero\")\n    return a / b\n\ntry:\n    print(divide(10, 0))\nexcept ZeroDivisionError as e:\n    print(f\"Error: Division by zero: {e}\")\n```\n\nIdentify ALL issues in this code. Focus on:\n1. Syntax errors that would prevent execution\n2. Logic bugs that would cause incorrect behavior\n3. Bad practices that violate Python conventions\n4. Potential runtime errors\n\nProvide your analysis in the structured format specified.",
+            "output_response": "```json\n[\n  {\n    \"FILE\": \"bad.py\",\n    \"LINE\": \"N/A\",\n    \"TYPE\": \"convention\",\n    \"ISSUE\": \"Missing module docstring.\",\n    \"FIX\": \"Add a docstring at the beginning of the file to describe the module's purpose.\"\n  },\n  {\n    \"FILE\": \"bad.py\",\n    \"LINE\": \"14\",\n    \"TYPE\": \"warning\",\n    \"ISSUE\": \"The `ZeroDivisionError` is caught immediately after the function call. While this handles the error, it might be more useful to allow the error to propagate up to a higher level in the application where more context is available for handling it. The current structure tightly couples the division operation with its error handling.\",\n    \"FIX\": \"Consider removing the `try...except` block from the current location and allowing the `ZeroDivisionError` to be handled at a higher level in the application. This promotes loose coupling and allows for more flexible error handling strategies.\"\n  },\n  {\n    \"FILE\": \"bad.py\",\n    \"LINE\": \"N/A\",\n    \"TYPE\": \"convention\",\n    \"ISSUE\": \"Missing final newline.\",\n    \"FIX\": \"Add a newline character at the end of the file.\"\n  }\n]\n```",
+            "code_length": 430
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "d333c27c-9c4a-4289-9532-73d97be5e5cd",
+        "timestamp": "2026-01-29T22:43:48.222767",
+        "agent": "Judge_Agent",
+        "model": "gemini-2.0-flash",
+        "action": "CODE_GEN",
+        "details": {
+            "iteration": 1,
+            "input_prompt": "Deterministic test generation based on discovered modules. (No LLM calls; designed to be fast and non-hanging.)",
+            "output_response": "import os\nimport sys\nimport multiprocessing as mp\n\nimport pytest\n\nsys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))\n\ndef _run_target(queue, fn, args, kwargs):\n    try:\n        queue.put(('ok', fn(*args, **kwargs)))\n    except BaseException as e:\n        queue.put(('err', repr(e)))\n\ndef run_with_timeout(fn, *args, timeout_s=1.0, **kwargs):\n    queue = mp.Queue()\n    p = mp.Process(target=_run_target, args=(queue, fn, args, kwargs))\n    p.start()\n    p.join(timeout_s)\n    if p.is_alive():\n        p.terminate()\n        p.join(0.2)\n        raise TimeoutError(f'Call timed out after {timeout_s}s')\n    status, payload = queue.get() if not queue.empty() else ('err', 'No result')\n    if status == 'err':\n        raise AssertionError(payload)\n    return payload\n\nimport os\nimport sys\n\n# Ensure imports work when tests are in a subfolder\nsys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))\n\nimport pytest\n\nimport bad\n\ndef test_imports_smoke():\n    # If this fails, there is likely a SyntaxError/ImportError in the codebase\n    assert True\n",
+            "generated_tests_path": "/home/khalil/igl/refactoring-swarm-template/sandbox/_generated_tests/test_generated.py"
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "d9945793-aa82-466e-8f77-09611fddc8da",
+        "timestamp": "2026-01-29T22:43:50.973421",
+        "agent": "Judge_Agent",
+        "model": "gemini-2.0-flash",
+        "action": "DEBUG",
+        "details": {
+            "iteration": 1,
+            "input_prompt": "Evaluate code in /home/khalil/igl/refactoring-swarm-template/sandbox",
+            "output_response": "✅ All tests passed! Pytest: 1 passed. Pylint score: 7.5/10.",
+            "tests_passed": true,
+            "pytest_passed": 1,
+            "pytest_failed": 0,
+            "pytest_errors": 0,
+            "pylint_score": 7.5,
+            "recommendation": "PASS"
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "ac948d9e-a88a-4254-a218-ff96f7110229",
+        "timestamp": "2026-01-29T22:43:50.976957",
+        "agent": "Orchestrator",
+        "model": "system",
+        "action": "CODE_ANALYSIS",
+        "details": {
+            "event_type": "MISSION_COMPLETE",
+            "input_prompt": "System event: MISSION_COMPLETE",
+            "output_response": "Tests passed after 1 iterations. Pylint: 7.5 → 7.5",
+            "iteration": 1,
+            "target_dir": "/home/khalil/igl/refactoring-swarm-template/sandbox"
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "791eb876-921b-4057-a680-acb4ae070a30",
+        "timestamp": "2026-01-29T22:44:21.457532",
+        "agent": "Orchestrator",
+        "model": "system",
+        "action": "CODE_ANALYSIS",
+        "details": {
+            "event_type": "STARTUP",
+            "input_prompt": "System event: STARTUP",
+            "output_response": "Starting refactoring swarm on /home/khalil/igl/refactoring-swarm-template/sandbox",
+            "iteration": 0,
+            "target_dir": "/home/khalil/igl/refactoring-swarm-template/sandbox"
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "a243fe63-251c-4521-bf24-08c89523c870",
+        "timestamp": "2026-01-29T22:44:25.692914",
+        "agent": "Auditor_Agent",
+        "model": "gemini-2.0-flash",
+        "action": "CODE_ANALYSIS",
+        "details": {
+            "file_analyzed": "bad.py",
+            "input_prompt": "You are an expert Python Code Auditor. Your role is to analyze Python code and identify:\n\n1. **Logic Errors**: Bugs, incorrect algorithms, off-by-one errors\n2. **Bad Practices**: Anti-patterns, code smells, violations of PEP 8\n3. **Potential Bugs**: Unhandled exceptions, type mismatches, undefined variables\n4. **Performance Issues**: Inefficient algorithms, unnecessary operations\n\nFor each issue found, you MUST provide:\n- The exact file name\n- The line number (if identifiable)\n- The type of issue (error/warning/convention/refactor)\n- A clear description of the problem\n- A specific suggested fix\n\nOutput your analysis in a STRUCTURED format that can be parsed.\nBe thorough but focus on the MOST CRITICAL issues first.\nDo NOT suggest changes to test files unless they have syntax errors.\n\nFormat each issue as:\nFILE: <filename>\nLINE: <line_number or \"N/A\">\nTYPE: <error|warning|convention|refactor>\nISSUE: <description>\nFIX: <suggested fix>\n---\n\nAnalyze the following Python code and identify all issues.\n\n**File**: bad.py\n\n**Pylint Output for context**:\n```\n************* Module bad\nbad.py:21:0: C0304: Final newline missing (missing-final-newline)\nbad.py:1:0: C0114: Missing module docstring (missing-module-docstring)\n\n------------------------------------------------------------------\nYour code has been rated at 7.50/10 (previous run: 7.50/10, +0.00)\n\n  # Truncate if too long\n```\n\n\n**Code to Analyze**:\n```python\ndef divide(a, b):\n    \"\"\"Divides two numbers.\n\n    Args:\n        a: The numerator.\n        b: The denominator.\n\n    Returns:\n        The result of the division.\n\n    Raises:\n        ZeroDivisionError: If the denominator is zero.\n    \"\"\"\n    if b == 0:\n        raise ZeroDivisionError(\"Cannot divide by zero\")\n    return a + b\n\ntry:\n    print(divide(10, 0))\nexcept ZeroDivisionError as e:\n    print(f\"Error: Division by zero: {e}\")\n```\n\nIdentify ALL issues in this code. Focus on:\n1. Syntax errors that would prevent execution\n2. Logic bugs that would cause incorrect behavior\n3. Bad practices that violate Python conventions\n4. Potential runtime errors\n\nProvide your analysis in the structured format specified.",
+            "output_response": "```json\n[\n  {\n    \"FILE\": \"bad.py\",\n    \"LINE\": 15,\n    \"TYPE\": \"error\",\n    \"ISSUE\": \"Incorrect result. The function is supposed to divide `a` by `b`, but it adds them instead.\",\n    \"FIX\": \"Change `return a + b` to `return a / b`.\"\n  },\n  {\n    \"FILE\": \"bad.py\",\n    \"LINE\": \"N/A\",\n    \"TYPE\": \"convention\",\n    \"ISSUE\": \"Missing module docstring.\",\n    \"FIX\": \"Add a docstring at the beginning of the file describing the module's purpose.\"\n  },\n  {\n    \"FILE\": \"bad.py\",\n    \"LINE\": \"N/A\",\n    \"TYPE\": \"convention\",\n    \"ISSUE\": \"Missing final newline.\",\n    \"FIX\": \"Add a newline character at the end of the file.\"\n  }\n]\n```",
+            "code_length": 430
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "5b389870-f168-4f8f-8036-af063644b3bc",
+        "timestamp": "2026-01-29T22:44:25.697238",
+        "agent": "Judge_Agent",
+        "model": "gemini-2.0-flash",
+        "action": "CODE_GEN",
+        "details": {
+            "iteration": 1,
+            "input_prompt": "Deterministic test generation based on discovered modules. (No LLM calls; designed to be fast and non-hanging.)",
+            "output_response": "import os\nimport sys\nimport multiprocessing as mp\n\nimport pytest\n\nsys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))\n\ndef _run_target(queue, fn, args, kwargs):\n    try:\n        queue.put(('ok', fn(*args, **kwargs)))\n    except BaseException as e:\n        queue.put(('err', repr(e)))\n\ndef run_with_timeout(fn, *args, timeout_s=1.0, **kwargs):\n    queue = mp.Queue()\n    p = mp.Process(target=_run_target, args=(queue, fn, args, kwargs))\n    p.start()\n    p.join(timeout_s)\n    if p.is_alive():\n        p.terminate()\n        p.join(0.2)\n        raise TimeoutError(f'Call timed out after {timeout_s}s')\n    status, payload = queue.get() if not queue.empty() else ('err', 'No result')\n    if status == 'err':\n        raise AssertionError(payload)\n    return payload\n\nimport os\nimport sys\n\n# Ensure imports work when tests are in a subfolder\nsys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))\n\nimport pytest\n\nimport bad\n\ndef test_imports_smoke():\n    # If this fails, there is likely a SyntaxError/ImportError in the codebase\n    assert True\n",
+            "generated_tests_path": "/home/khalil/igl/refactoring-swarm-template/sandbox/_generated_tests/test_generated.py"
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "1b89503c-7b28-44cb-80ac-0be81d9ff27e",
+        "timestamp": "2026-01-29T22:44:27.351380",
+        "agent": "Judge_Agent",
+        "model": "gemini-2.0-flash",
+        "action": "DEBUG",
+        "details": {
+            "iteration": 1,
+            "input_prompt": "Evaluate code in /home/khalil/igl/refactoring-swarm-template/sandbox",
+            "output_response": "✅ All tests passed! Pytest: 1 passed. Pylint score: 7.5/10.",
+            "tests_passed": true,
+            "pytest_passed": 1,
+            "pytest_failed": 0,
+            "pytest_errors": 0,
+            "pylint_score": 7.5,
+            "recommendation": "PASS"
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "861c9673-513d-4662-b1e8-f74defa88a2c",
+        "timestamp": "2026-01-29T22:44:27.363491",
+        "agent": "Orchestrator",
+        "model": "system",
+        "action": "CODE_ANALYSIS",
+        "details": {
+            "event_type": "MISSION_COMPLETE",
+            "input_prompt": "System event: MISSION_COMPLETE",
+            "output_response": "Tests passed after 1 iterations. Pylint: 7.5 → 7.5",
+            "iteration": 1,
+            "target_dir": "/home/khalil/igl/refactoring-swarm-template/sandbox"
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "6c4de5af-7755-49fb-bcba-53166cfcbbe4",
+        "timestamp": "2026-01-29T22:52:19.514580",
+        "agent": "Orchestrator",
+        "model": "system",
+        "action": "CODE_ANALYSIS",
+        "details": {
+            "event_type": "STARTUP",
+            "input_prompt": "System event: STARTUP",
+            "output_response": "Starting refactoring swarm on /home/khalil/igl/refactoring-swarm-template/sandbox",
+            "iteration": 0,
+            "target_dir": "/home/khalil/igl/refactoring-swarm-template/sandbox"
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "75c416ab-d85a-42ee-a1c0-82cf86a4e1bd",
+        "timestamp": "2026-01-29T22:52:23.170174",
+        "agent": "Auditor_Agent",
+        "model": "gemini-2.0-flash",
+        "action": "CODE_ANALYSIS",
+        "details": {
+            "file_analyzed": "bad.py",
+            "input_prompt": "You are an expert Python Code Auditor. Your role is to find ALL bugs in Python code.\n\nLook for these common bugs:\n1. **Wrong operators**: + instead of -, == instead of !=, etc.\n2. **Missing edge cases**: empty list, zero, negative numbers, empty string\n3. **Infinite loops**: while loops that never terminate (e.g., replacing empty string)\n4. **Off-by-one errors**: wrong range bounds, wrong slice indices\n5. **Missing return statements** or returning wrong values\n6. **Unhandled exceptions**: division by zero, index out of range\n7. **Syntax errors**: indentation, missing colons, undefined variables\n\nYou MUST output issues in this EXACT format (one per issue, separated by ---):\n\nFILE: <filename>\nLINE: <line_number or N/A>\nTYPE: error\nISSUE: <description of the bug>\nFIX: <exact code change needed>\n---\n\nBe AGGRESSIVE - if the code could fail for ANY input, report it as an error.\nDo NOT say \"no issues found\" - look harder for edge cases and logic bugs.\n\nAnalyze the following Python code and identify all issues.\n\n**File**: bad.py\n\n**Pylint Output for context**:\n```\n************* Module bad\nbad.py:21:0: C0304: Final newline missing (missing-final-newline)\nbad.py:1:0: C0114: Missing module docstring (missing-module-docstring)\n\n------------------------------------------------------------------\nYour code has been rated at 7.50/10 (previous run: 7.50/10, +0.00)\n\n  # Truncate if too long\n```\n\n\n**Code to Analyze**:\n```python\ndef divide(a, b):\n    \"\"\"Divides two numbers.\n\n    Args:\n        a: The numerator.\n        b: The denominator.\n\n    Returns:\n        The result of the division.\n\n    Raises:\n        ZeroDivisionError: If the denominator is zero.\n    \"\"\"\n    if b == 0:\n        raise ZeroDivisionError(\"Cannot divide by zero\")\n    return a + b\n\ntry:\n    print(divide(10, 0))\nexcept ZeroDivisionError as e:\n    print(f\"Error: Division by zero: {e}\")\n```\n\nIdentify ALL issues in this code. Focus on:\n1. Syntax errors that would prevent execution\n2. Logic bugs that would cause incorrect behavior\n3. Bad practices that violate Python conventions\n4. Potential runtime errors\n\nProvide your analysis in the structured format specified.",
+            "output_response": "FILE: bad.py\nLINE: 15\nTYPE: error\nISSUE: The function should return the result of the division (a / b), but it returns the sum (a + b).\nFIX: return a / b\n---\nFILE: bad.py\nLINE: N/A\nTYPE: error\nISSUE: Missing final newline character in the file.\nFIX: Add a newline character at the end of the file.\n---\n",
+            "code_length": 430
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "cf365324-a430-4a78-b63e-64cbb35936b6",
+        "timestamp": "2026-01-29T22:52:24.685371",
+        "agent": "Fixer_Agent",
+        "model": "gemini-2.0-flash",
+        "action": "FIX",
+        "details": {
+            "file_fixed": "bad.py",
+            "input_prompt": "You are an expert Python Code Fixer. Your role is to apply MINIMAL, TARGETED fixes to Python code.\n\nCRITICAL RULES:\n1. Make the SMALLEST possible changes to fix the issues\n2. Do NOT rewrite entire functions unless absolutely necessary\n3. Preserve the original code structure and style\n4. Fix only the specific issues mentioned\n5. Do NOT add new features or refactor for style\n6. Ensure the fixed code is syntactically correct\n7. Do NOT change test files unless they have syntax errors\n\nWhen fixing code:\n- Fix logic errors\n- Fix syntax errors\n- Fix incorrect variable names or typos\n- Fix incorrect operators or conditions\n- Add missing imports if needed\n- Fix indentation issues\n\nOUTPUT FORMAT:\nYou must return ONLY the complete fixed Python code.\nDo not include any explanations before or after the code.\nDo not use markdown code blocks - just return the raw Python code.\nThe code must be complete and ready to save to a file.\n\nFix the following Python code based on the identified issues.\n\n**File**: bad.py\n\n**Issues to Fix**:\n- Line 15: [ERROR] The function should return the result of the division (a / b), but it returns the sum (a + b).\n  Suggested fix: return a / b\n- Line N/A: [ERROR] Missing final newline character in the file.\n  Suggested fix: Add a newline character at the end of the file.\n\n**Original Code**:\n```python\ndef divide(a, b):\n    \"\"\"Divides two numbers.\n\n    Args:\n        a: The numerator.\n        b: The denominator.\n\n    Returns:\n        The result of the division.\n\n    Raises:\n        ZeroDivisionError: If the denominator is zero.\n    \"\"\"\n    if b == 0:\n        raise ZeroDivisionError(\"Cannot divide by zero\")\n    return a + b\n\ntry:\n    print(divide(10, 0))\nexcept ZeroDivisionError as e:\n    print(f\"Error: Division by zero: {e}\")\n```\n\nApply MINIMAL fixes to address the issues listed above.\nReturn ONLY the complete fixed Python code, nothing else.\nDo not include markdown code blocks or explanations.",
+            "output_response": "def divide(a, b):\n    \"\"\"Divides two numbers.\n\n    Args:\n        a: The numerator.\n        b: The denominator.\n\n    Returns:\n        The result of the division.\n\n    Raises:\n        ZeroDivisionError: If the denominator is zero.\n    \"\"\"\n    if b == 0:\n        raise ZeroDivisionError(\"Cannot divide by zero\")\n    return a / b\n\ntry:\n    print(divide(10, 0))\nexcept ZeroDivisionError as e:\n    print(f\"Error: Division by zero: {e}\")",
+            "issues_addressed": 2,
+            "original_length": 430,
+            "fixed_length": 430
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "f9bab996-b874-4a38-8b0c-0ed0cc217aa9",
+        "timestamp": "2026-01-29T22:52:24.691032",
+        "agent": "Judge_Agent",
+        "model": "gemini-2.0-flash",
+        "action": "CODE_GEN",
+        "details": {
+            "iteration": 1,
+            "input_prompt": "Deterministic test generation based on discovered modules. (No LLM calls; designed to be fast and non-hanging.)",
+            "output_response": "import os\nimport sys\nimport multiprocessing as mp\n\nimport pytest\n\nsys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))\n\ndef _run_target(queue, fn, args, kwargs):\n    try:\n        queue.put(('ok', fn(*args, **kwargs)))\n    except BaseException as e:\n        queue.put(('err', repr(e)))\n\ndef run_with_timeout(fn, *args, timeout_s=1.0, **kwargs):\n    queue = mp.Queue()\n    p = mp.Process(target=_run_target, args=(queue, fn, args, kwargs))\n    p.start()\n    p.join(timeout_s)\n    if p.is_alive():\n        p.terminate()\n        p.join(0.2)\n        raise TimeoutError(f'Call timed out after {timeout_s}s')\n    status, payload = queue.get() if not queue.empty() else ('err', 'No result')\n    if status == 'err':\n        raise AssertionError(payload)\n    return payload\n\nimport os\nimport sys\n\n# Ensure imports work when tests are in a subfolder\nsys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))\n\nimport pytest\n\nimport bad\n\ndef test_imports_smoke():\n    # If this fails, there is likely a SyntaxError/ImportError in the codebase\n    assert True\n",
+            "generated_tests_path": "/home/khalil/igl/refactoring-swarm-template/sandbox/_generated_tests/test_generated.py"
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "4df3c331-c030-450e-8183-4af280f7a96a",
+        "timestamp": "2026-01-29T22:52:26.485526",
+        "agent": "Judge_Agent",
+        "model": "gemini-2.0-flash",
+        "action": "DEBUG",
+        "details": {
+            "iteration": 1,
+            "input_prompt": "Evaluate code in /home/khalil/igl/refactoring-swarm-template/sandbox",
+            "output_response": "✅ All tests passed! Pytest: 1 passed. Pylint score: 7.5/10.",
+            "tests_passed": true,
+            "pytest_passed": 1,
+            "pytest_failed": 0,
+            "pytest_errors": 0,
+            "pylint_score": 7.5,
+            "recommendation": "PASS"
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "2ad40ee7-b698-404e-9bce-6ded5e3769a2",
+        "timestamp": "2026-01-29T22:52:26.488666",
+        "agent": "Orchestrator",
+        "model": "system",
+        "action": "CODE_ANALYSIS",
+        "details": {
+            "event_type": "MISSION_COMPLETE",
+            "input_prompt": "System event: MISSION_COMPLETE",
+            "output_response": "Tests passed after 1 iterations. Pylint: 7.5 → 7.5",
+            "iteration": 1,
+            "target_dir": "/home/khalil/igl/refactoring-swarm-template/sandbox"
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "b75db7fe-a548-4944-993c-d6e028679f13",
+        "timestamp": "2026-01-29T22:52:54.739024",
+        "agent": "Orchestrator",
+        "model": "system",
+        "action": "CODE_ANALYSIS",
+        "details": {
+            "event_type": "STARTUP",
+            "input_prompt": "System event: STARTUP",
+            "output_response": "Starting refactoring swarm on /home/khalil/igl/refactoring-swarm-template/sandbox",
+            "iteration": 0,
+            "target_dir": "/home/khalil/igl/refactoring-swarm-template/sandbox"
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "8522bb8d-e090-49ba-a2df-8333bbf4c82b",
+        "timestamp": "2026-01-29T22:53:01.415748",
+        "agent": "Auditor_Agent",
+        "model": "gemini-2.0-flash",
+        "action": "CODE_ANALYSIS",
+        "details": {
+            "file_analyzed": "bad.py",
+            "input_prompt": "You are an expert Python Code Auditor. Your role is to find ALL bugs in Python code.\n\nLook for these common bugs:\n1. **Wrong operators**: + instead of -, == instead of !=, etc.\n2. **Missing edge cases**: empty list, zero, negative numbers, empty string\n3. **Infinite loops**: while loops that never terminate (e.g., replacing empty string)\n4. **Off-by-one errors**: wrong range bounds, wrong slice indices\n5. **Missing return statements** or returning wrong values\n6. **Unhandled exceptions**: division by zero, index out of range\n7. **Syntax errors**: indentation, missing colons, undefined variables\n\nYou MUST output issues in this EXACT format (one per issue, separated by ---):\n\nFILE: <filename>\nLINE: <line_number or N/A>\nTYPE: error\nISSUE: <description of the bug>\nFIX: <exact code change needed>\n---\n\nBe AGGRESSIVE - if the code could fail for ANY input, report it as an error.\nDo NOT say \"no issues found\" - look harder for edge cases and logic bugs.\n\nAnalyze the following Python code and identify all issues.\n\n**File**: bad.py\n\n**Pylint Output for context**:\n```\n************* Module bad\nbad.py:85:0: C0304: Final newline missing (missing-final-newline)\nbad.py:60:4: R1705: Unnecessary \"elif\" after \"return\", remove the leading \"el\" from \"elif\" (no-else-return)\n\n------------------------------------------------------------------\nYour code has been rated at 9.60/10 (previous run: 9.60/10, +0.00)\n\n  # Truncate if too long\n```\n\n\n**Code to Analyze**:\n```python\n\"\"\"\nCalculator Module - A simple calculator with intentional bugs for testing.\n\"\"\"\n\n\ndef add(a, b):\n    \"\"\"Add two numbers together.\"\"\"\n    return a + b\n\n\ndef subtract(a, b):\n    \"\"\"Subtract b from a.\"\"\"\n    return a - b\n\n\ndef multiply(a, b):\n    \"\"\"Multiply two numbers.\"\"\"\n    return a * b\n\n\ndef divide(a, b):\n    \"\"\"Divide a by b.\"\"\"\n    if b == 0:\n        raise ZeroDivisionError(\"Cannot divide by zero\")\n    return a / b\n\n\ndef power(base, exponent):\n    \"\"\"Calculate base raised to exponent.\"\"\"\n    if base == 0 and exponent < 0:\n        raise ZeroDivisionError(\"0 raised to a negative power is undefined\")\n    result = 1\n    if exponent >= 0:\n        for _ in range(exponent):\n            result *= base\n    else:\n        result = 1.0 / power(base, -exponent)\n    return result\n\n\ndef factorial(n):\n    \"\"\"Calculate factorial of n.\"\"\"\n    if n < 0:\n        return \"Factorial is not defined for negative numbers\"\n    if n == 0:\n        return 1\n    result = 1\n    for i in range(1, n + 1):\n        result *= i\n    return result\n\n\ndef is_even(number):\n    \"\"\"Check if a number is even.\"\"\"\n    return number % 2 == 0\n\n\ndef fibonacci(n):\n    \"\"\"Return the nth Fibonacci number.\"\"\"\n    if n <= 0:\n        return 0\n    elif n == 1:\n        return 1\n    else:\n        a, b = 0, 1\n        for _ in range(2, n + 1):\n            a, b = b, a + b\n        return b\n\n\ndef average(numbers):\n    \"\"\"Calculate the average of a list of numbers.\"\"\"\n    if not numbers:\n        raise ValueError(\"Cannot calculate the average of an empty list\")\n    total = 0\n    for num in numbers:\n        total += num\n    return total / len(numbers)\n\n\ndef find_max(numbers):\n    \"\"\"Find the maximum value in a list.\"\"\"\n    if not numbers:\n        raise ValueError(\"Cannot find the maximum of an empty list\")\n    return max(numbers)\n```\n\nIdentify ALL issues in this code. Focus on:\n1. Syntax errors that would prevent execution\n2. Logic bugs that would cause incorrect behavior\n3. Bad practices that violate Python conventions\n4. Potential runtime errors\n\nProvide your analysis in the structured format specified.",
+            "output_response": "FILE: bad.py\nLINE: 70\nTYPE: error\nISSUE: The power function uses recursion when the exponent is negative. This can lead to a stack overflow error for large negative exponents.\nFIX: ```python\n    if base == 0 and exponent < 0:\n        raise ZeroDivisionError(\"0 raised to a negative power is undefined\")\n    result = 1\n    if exponent >= 0:\n        for _ in range(exponent):\n            result *= base\n    else:\n        result = 1.0\n        for _ in range(-exponent):\n            result /= base\n    return result\n```\n\n---\nFILE: bad.py\nLINE: 77\nTYPE: error\nISSUE: The factorial function returns a string when n is negative, but it should raise a ValueError or return None. Returning a string is inconsistent with the function's purpose.\nFIX: ```python\n    if n < 0:\n        raise ValueError(\"Factorial is not defined for negative numbers\")\n```\n\n---\nFILE: bad.py\nLINE: 80\nTYPE: error\nISSUE: The factorial function can overflow for large values of n. While not strictly a bug, it's a potential issue that should be considered. No fix is provided as handling large factorials is outside the scope of simple bug fixes.\n\n---\nFILE: bad.py\nLINE: 97\nTYPE: error\nISSUE: The average function does not handle the case where the input list contains non-numeric values. This will cause a TypeError.\nFIX: ```python\n    if not numbers:\n        raise ValueError(\"Cannot calculate the average of an empty list\")\n    total = 0\n    for num in numbers:\n        if not isinstance(num, (int, float)):\n            raise TypeError(\"List must contain only numbers\")\n        total += num\n    return total / len(numbers)\n```\n\n---\nFILE: bad.py\nLINE: 107\nTYPE: error\nISSUE: The find_max function does not handle the case where the input list contains non-comparable values (e.g., a mix of strings and numbers). This will cause a TypeError.\nFIX: ```python\n    if not numbers:\n        raise ValueError(\"Cannot find the maximum of an empty list\")\n    \n    # Check if all elements are comparable\n    try:\n        max(numbers)\n    except TypeError:\n        raise TypeError(\"List must contain comparable elements\")\n    \n    return max(numbers)\n```\n",
+            "code_length": 1801
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "1ba0b014-138d-413a-ba33-77ab7a94e7b3",
+        "timestamp": "2026-01-29T22:53:05.866052",
+        "agent": "Fixer_Agent",
+        "model": "gemini-2.0-flash",
+        "action": "FIX",
+        "details": {
+            "file_fixed": "bad.py",
+            "input_prompt": "You are an expert Python Code Fixer. Your role is to apply MINIMAL, TARGETED fixes to Python code.\n\nCRITICAL RULES:\n1. Make the SMALLEST possible changes to fix the issues\n2. Do NOT rewrite entire functions unless absolutely necessary\n3. Preserve the original code structure and style\n4. Fix only the specific issues mentioned\n5. Do NOT add new features or refactor for style\n6. Ensure the fixed code is syntactically correct\n7. Do NOT change test files unless they have syntax errors\n\nWhen fixing code:\n- Fix logic errors\n- Fix syntax errors\n- Fix incorrect variable names or typos\n- Fix incorrect operators or conditions\n- Add missing imports if needed\n- Fix indentation issues\n\nOUTPUT FORMAT:\nYou must return ONLY the complete fixed Python code.\nDo not include any explanations before or after the code.\nDo not use markdown code blocks - just return the raw Python code.\nThe code must be complete and ready to save to a file.\n\nFix the following Python code based on the identified issues.\n\n**File**: bad.py\n\n**Issues to Fix**:\n- Line 70: [ERROR] The power function uses recursion when the exponent is negative. This can lead to a stack overflow error for large negative exponents.\n  Suggested fix: ```python\n- Line 77: [ERROR] The factorial function returns a string when n is negative, but it should raise a ValueError or return None. Returning a string is inconsistent with the function's purpose.\n  Suggested fix: ```python\n- Line 80: [ERROR] The factorial function can overflow for large values of n. While not strictly a bug, it's a potential issue that should be considered. No fix is provided as handling large factorials is outside the scope of simple bug fixes.\n  Suggested fix: \n- Line 97: [ERROR] The average function does not handle the case where the input list contains non-numeric values. This will cause a TypeError.\n  Suggested fix: ```python\n- Line 107: [ERROR] The find_max function does not handle the case where the input list contains non-comparable values (e.g., a mix of strings and numbers). This will cause a TypeError.\n  Suggested fix: ```python\n\n**Original Code**:\n```python\n\"\"\"\nCalculator Module - A simple calculator with intentional bugs for testing.\n\"\"\"\n\n\ndef add(a, b):\n    \"\"\"Add two numbers together.\"\"\"\n    return a + b\n\n\ndef subtract(a, b):\n    \"\"\"Subtract b from a.\"\"\"\n    return a - b\n\n\ndef multiply(a, b):\n    \"\"\"Multiply two numbers.\"\"\"\n    return a * b\n\n\ndef divide(a, b):\n    \"\"\"Divide a by b.\"\"\"\n    if b == 0:\n        raise ZeroDivisionError(\"Cannot divide by zero\")\n    return a / b\n\n\ndef power(base, exponent):\n    \"\"\"Calculate base raised to exponent.\"\"\"\n    if base == 0 and exponent < 0:\n        raise ZeroDivisionError(\"0 raised to a negative power is undefined\")\n    result = 1\n    if exponent >= 0:\n        for _ in range(exponent):\n            result *= base\n    else:\n        result = 1.0 / power(base, -exponent)\n    return result\n\n\ndef factorial(n):\n    \"\"\"Calculate factorial of n.\"\"\"\n    if n < 0:\n        return \"Factorial is not defined for negative numbers\"\n    if n == 0:\n        return 1\n    result = 1\n    for i in range(1, n + 1):\n        result *= i\n    return result\n\n\ndef is_even(number):\n    \"\"\"Check if a number is even.\"\"\"\n    return number % 2 == 0\n\n\ndef fibonacci(n):\n    \"\"\"Return the nth Fibonacci number.\"\"\"\n    if n <= 0:\n        return 0\n    elif n == 1:\n        return 1\n    else:\n        a, b = 0, 1\n        for _ in range(2, n + 1):\n            a, b = b, a + b\n        return b\n\n\ndef average(numbers):\n    \"\"\"Calculate the average of a list of numbers.\"\"\"\n    if not numbers:\n        raise ValueError(\"Cannot calculate the average of an empty list\")\n    total = 0\n    for num in numbers:\n        total += num\n    return total / len(numbers)\n\n\ndef find_max(numbers):\n    \"\"\"Find the maximum value in a list.\"\"\"\n    if not numbers:\n        raise ValueError(\"Cannot find the maximum of an empty list\")\n    return max(numbers)\n```\n\nApply MINIMAL fixes to address the issues listed above.\nReturn ONLY the complete fixed Python code, nothing else.\nDo not include markdown code blocks or explanations.",
+            "output_response": "\"\"\"\nCalculator Module - A simple calculator with intentional bugs for testing.\n\"\"\"\n\n\ndef add(a, b):\n    \"\"\"Add two numbers together.\"\"\"\n    return a + b\n\n\ndef subtract(a, b):\n    \"\"\"Subtract b from a.\"\"\"\n    return a - b\n\n\ndef multiply(a, b):\n    \"\"\"Multiply two numbers.\"\"\"\n    return a * b\n\n\ndef divide(a, b):\n    \"\"\"Divide a by b.\"\"\"\n    if b == 0:\n        raise ZeroDivisionError(\"Cannot divide by zero\")\n    return a / b\n\n\ndef power(base, exponent):\n    \"\"\"Calculate base raised to exponent.\"\"\"\n    if base == 0 and exponent < 0:\n        raise ZeroDivisionError(\"0 raised to a negative power is undefined\")\n    result = 1\n    if exponent >= 0:\n        for _ in range(exponent):\n            result *= base\n    else:\n        result = 1.0\n        for _ in range(-exponent):\n            result /= base\n    return result\n\n\ndef factorial(n):\n    \"\"\"Calculate factorial of n.\"\"\"\n    if n < 0:\n        return None\n    if n == 0:\n        return 1\n    result = 1\n    for i in range(1, n + 1):\n        result *= i\n    return result\n\n\ndef is_even(number):\n    \"\"\"Check if a number is even.\"\"\"\n    return number % 2 == 0\n\n\ndef fibonacci(n):\n    \"\"\"Return the nth Fibonacci number.\"\"\"\n    if n <= 0:\n        return 0\n    elif n == 1:\n        return 1\n    else:\n        a, b = 0, 1\n        for _ in range(2, n + 1):\n            a, b = b, a + b\n        return b\n\n\ndef average(numbers):\n    \"\"\"Calculate the average of a list of numbers.\"\"\"\n    if not numbers:\n        raise ValueError(\"Cannot calculate the average of an empty list\")\n    total = 0\n    for num in numbers:\n        if not isinstance(num, (int, float)):\n            raise TypeError(\"List contains non-numeric values\")\n        total += num\n    return total / len(numbers)\n\n\ndef find_max(numbers):\n    \"\"\"Find the maximum value in a list.\"\"\"\n    if not numbers:\n        raise ValueError(\"Cannot find the maximum of an empty list\")\n    for num in numbers:\n        try:\n            num > num\n        except TypeError:\n            raise TypeError(\"List contains non-comparable values\")\n    return max(numbers)",
+            "issues_addressed": 5,
+            "original_length": 1801,
+            "fixed_length": 2057
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "2e5b2a13-6f2b-4f77-9f70-fffed60e95bb",
+        "timestamp": "2026-01-29T22:53:05.874906",
+        "agent": "Judge_Agent",
+        "model": "gemini-2.0-flash",
+        "action": "CODE_GEN",
+        "details": {
+            "iteration": 1,
+            "input_prompt": "Deterministic test generation based on discovered modules. (No LLM calls; designed to be fast and non-hanging.)",
+            "output_response": "import os\nimport sys\nimport multiprocessing as mp\n\nimport pytest\n\nsys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))\n\ndef _run_target(queue, fn, args, kwargs):\n    try:\n        queue.put(('ok', fn(*args, **kwargs)))\n    except BaseException as e:\n        queue.put(('err', repr(e)))\n\ndef run_with_timeout(fn, *args, timeout_s=1.0, **kwargs):\n    queue = mp.Queue()\n    p = mp.Process(target=_run_target, args=(queue, fn, args, kwargs))\n    p.start()\n    p.join(timeout_s)\n    if p.is_alive():\n        p.terminate()\n        p.join(0.2)\n        raise TimeoutError(f'Call timed out after {timeout_s}s')\n    status, payload = queue.get() if not queue.empty() else ('err', 'No result')\n    if status == 'err':\n        raise AssertionError(payload)\n    return payload\n\nimport os\nimport sys\n\n# Ensure imports work when tests are in a subfolder\nsys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))\n\nimport pytest\n\nimport bad\n\ndef test_imports_smoke():\n    # If this fails, there is likely a SyntaxError/ImportError in the codebase\n    assert True\n",
+            "generated_tests_path": "/home/khalil/igl/refactoring-swarm-template/sandbox/_generated_tests/test_generated.py"
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "c88c3820-54ed-4fa2-97b5-4aad547631a5",
+        "timestamp": "2026-01-29T22:53:07.862010",
+        "agent": "Judge_Agent",
+        "model": "gemini-2.0-flash",
+        "action": "DEBUG",
+        "details": {
+            "iteration": 1,
+            "input_prompt": "Evaluate code in /home/khalil/igl/refactoring-swarm-template/sandbox",
+            "output_response": "✅ All tests passed! Pytest: 1 passed. Pylint score: 9.32/10.",
+            "tests_passed": true,
+            "pytest_passed": 1,
+            "pytest_failed": 0,
+            "pytest_errors": 0,
+            "pylint_score": 9.32,
+            "recommendation": "PASS"
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "0fdb6cb1-f3d5-4c47-867b-15eec397ffb9",
+        "timestamp": "2026-01-29T22:53:07.867409",
+        "agent": "Orchestrator",
+        "model": "system",
+        "action": "CODE_ANALYSIS",
+        "details": {
+            "event_type": "MISSION_COMPLETE",
+            "input_prompt": "System event: MISSION_COMPLETE",
+            "output_response": "Tests passed after 1 iterations. Pylint: 9.6 → 9.32",
+            "iteration": 1,
+            "target_dir": "/home/khalil/igl/refactoring-swarm-template/sandbox"
+        },
+        "status": "SUCCESS"
     }
 ]
