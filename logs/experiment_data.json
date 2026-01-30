@@ -555,5 +555,98 @@
             "target_dir": "/home/khalil/igl/refactoring-swarm-template/sandbox"
         },
         "status": "SUCCESS"
+    },
+    {
+        "id": "08185cae-db1b-4382-91df-c1c74cc405d7",
+        "timestamp": "2026-01-30T14:52:40.302196",
+        "agent": "Orchestrator",
+        "model": "system",
+        "action": "CODE_ANALYSIS",
+        "details": {
+            "event_type": "STARTUP",
+            "input_prompt": "System event: STARTUP",
+            "output_response": "Starting refactoring swarm on /home/khalil/igl/refactoring-swarm-template/sandbox",
+            "iteration": 0,
+            "target_dir": "/home/khalil/igl/refactoring-swarm-template/sandbox"
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "8875636b-6d37-45fc-9fd0-1df9c529c931",
+        "timestamp": "2026-01-30T14:52:47.193135",
+        "agent": "Auditor_Agent",
+        "model": "gemini-2.0-flash",
+        "action": "CODE_ANALYSIS",
+        "details": {
+            "file_analyzed": "bad.py",
+            "input_prompt": "You are an expert Python Code Auditor. Your role is to find ALL bugs in Python code.\n\nLook for these common bugs:\n1. **Wrong operators**: + instead of -, == instead of !=, etc.\n2. **Missing edge cases**: empty list, zero, negative numbers, empty string\n3. **Infinite loops**: while loops that never terminate (e.g., replacing empty string)\n4. **Off-by-one errors**: wrong range bounds, wrong slice indices\n5. **Missing return statements** or returning wrong values\n6. **Unhandled exceptions**: division by zero, index out of range\n7. **Syntax errors**: indentation, missing colons, undefined variables\n\nYou MUST output issues in this EXACT format (one per issue, separated by ---):\n\nFILE: <filename>\nLINE: <line_number or N/A>\nTYPE: error\nISSUE: <description of the bug>\nFIX: <exact code change needed>\n---\n\nBe AGGRESSIVE - if the code could fail for ANY input, report it as an error.\nDo NOT say \"no issues found\" - look harder for edge cases and logic bugs.\n\nAnalyze the following Python code and identify all issues.\n\n**File**: bad.py\n\n**Pylint Output for context**:\n```\n************* Module bad\nbad.py:94:0: C0304: Final newline missing (missing-final-newline)\nbad.py:62:4: R1705: Unnecessary \"elif\" after \"return\", remove the leading \"el\" from \"elif\" (no-else-return)\nbad.py:91:12: R0124: Redundant comparison - num > num (comparison-with-itself)\nbad.py:93:12: W0707: Consider explicitly re-raising using 'except TypeError as exc' and 'raise TypeError('List contains non-comparable values') from exc' (raise-missing-from)\n\n------------------------------------------------------------------\nYour code has been rated at 9.32/10 (previous run: 9.32/10, +0.00)\n\n  # Truncate if too long\n```\n\n\n**Code to Analyze**:\n```python\n\"\"\"\nCalculator Module - A simple calculator with intentional bugs for testing.\n\"\"\"\n\n\ndef add(a, b):\n    \"\"\"Add two numbers together.\"\"\"\n    return a + b\n\n\ndef subtract(a, b):\n    \"\"\"Subtract b from a.\"\"\"\n    return a - b\n\n\ndef multiply(a, b):\n    \"\"\"Multiply two numbers.\"\"\"\n    return a * b\n\n\ndef divide(a, b):\n    \"\"\"Divide a by b.\"\"\"\n    if b == 0:\n        raise ZeroDivisionError(\"Cannot divide by zero\")\n    return a / b\n\n\ndef power(base, exponent):\n    \"\"\"Calculate base raised to exponent.\"\"\"\n    if base == 0 and exponent < 0:\n        raise ZeroDivisionError(\"0 raised to a negative power is undefined\")\n    result = 1\n    if exponent >= 0:\n        for _ in range(exponent):\n            result *= base\n    else:\n        result = 1.0\n        for _ in range(-exponent):\n            result /= base\n    return result\n\n\ndef factorial(n):\n    \"\"\"Calculate factorial of n.\"\"\"\n    if n < 0:\n        return None\n    if n == 0:\n        return 1\n    result = 1\n    for i in range(1, n + 1):\n        result *= i\n    return result\n\n\ndef is_even(number):\n    \"\"\"Check if a number is even.\"\"\"\n    return number % 2 == 0\n\n\ndef fibonacci(n):\n    \"\"\"Return the nth Fibonacci number.\"\"\"\n    if n <= 0:\n        return 0\n    elif n == 1:\n        return 1\n    else:\n        a, b = 0, 1\n        for _ in range(2, n + 1):\n            a, b = b, a + b\n        return b\n\n\ndef average(numbers):\n    \"\"\"Calculate the average of a list of numbers.\"\"\"\n    if not numbers:\n        raise ValueError(\"Cannot calculate the average of an empty list\")\n    total = 0\n    for num in numbers:\n        if not isinstance(num, (int, float)):\n            raise TypeError(\"List contains non-numeric values\")\n        total += num\n    return total / len(numbers)\n\n\ndef find_max(numbers):\n    \"\"\"Find the maximum value in a list.\"\"\"\n    if not numbers:\n        raise ValueError(\"Cannot find the maximum of an empty list\")\n    for num in numbers:\n        try:\n            num > num\n        except TypeError:\n            raise TypeError(\"List contains non-comparable values\")\n    return max(numbers)\n```\n\nIdentify ALL issues in this code. Focus on:\n1. Syntax errors that would prevent execution\n2. Logic bugs that would cause incorrect behavior\n3. Bad practices that violate Python conventions\n4. Potential runtime errors\n\nProvide your analysis in the structured format specified.",
+            "output_response": "FILE: bad.py\nLINE: 62\nTYPE: error\nISSUE: Unnecessary \"elif\" after \"return\". The `else` block is redundant because the function already returns in the `elif` block.\nFIX: ```diff\n--- a/bad.py\n+++ b/bad.py\n@@ -59,10 +59,9 @@\n     if n <= 0:\n         return 0\n     elif n == 1:\n-        return 1\n-    else:\n-        a, b = 0, 1\n-        for _ in range(2, n + 1):\n-            a, b = b, a + b\n-        return b\n+      return 1\n+    a, b = 0, 1\n+    for _ in range(2, n + 1):\n+      a, b = b, a + b\n+    return b\n+\n\n```\n---\nFILE: bad.py\nLINE: 91\nTYPE: error\nISSUE: Redundant comparison `num > num`. This comparison will always be false and serves no purpose. It's likely intended to check for comparability, but it's done incorrectly.\nFIX: ```diff\n--- a/bad.py\n+++ b/bad.py\n@@ -88,10 +88,10 @@\n     \"\"\"Find the maximum value in a list.\"\"\"\n     if not numbers:\n         raise ValueError(\"Cannot find the maximum of an empty list\")\n-    for num in numbers:\n-        try:\n-            num > num\n-        except TypeError:\n-            raise TypeError(\"List contains non-comparable values\")\n+    try:\n+      max(numbers)\n+    except TypeError:\n+      raise TypeError(\"List contains non-comparable values\")\n     return max(numbers)\n\n```\n---\nFILE: bad.py\nLINE: 93\nTYPE: error\nISSUE: `raise TypeError(\"List contains non-comparable values\")` should re-raise the original exception using `raise ... from ...` to preserve the traceback.\nFIX: ```diff\n--- a/bad.py\n+++ b/bad.py\n@@ -88,10 +88,10 @@\n     \"\"\"Find the maximum value in a list.\"\"\"\n     if not numbers:\n         raise ValueError(\"Cannot find the maximum of an empty list\")\n-    for num in numbers:\n-        try:\n-            num > num\n-        except TypeError:\n-            raise TypeError(\"List contains non-comparable values\")\n+    try:\n+      max(numbers)\n+    except TypeError as exc:\n+      raise TypeError(\"List contains non-comparable values\") from exc\n     return max(numbers)\n\n```",
+            "code_length": 2057
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "e1cb9481-39d7-428e-bf4d-60d0de134382",
+        "timestamp": "2026-01-30T14:52:51.390055",
+        "agent": "Fixer_Agent",
+        "model": "gemini-2.0-flash",
+        "action": "FIX",
+        "details": {
+            "file_fixed": "bad.py",
+            "input_prompt": "You are an expert Python Code Fixer. Your role is to apply MINIMAL, TARGETED fixes to Python code.\n\nCRITICAL RULES:\n1. Make the SMALLEST possible changes to fix the issues\n2. Do NOT rewrite entire functions unless absolutely necessary\n3. Preserve the original code structure and style\n4. Fix only the specific issues mentioned\n5. Do NOT add new features or refactor for style\n6. Ensure the fixed code is syntactically correct\n7. Do NOT change test files unless they have syntax errors\n\nWhen fixing code:\n- Fix logic errors\n- Fix syntax errors\n- Fix incorrect variable names or typos\n- Fix incorrect operators or conditions\n- Add missing imports if needed\n- Fix indentation issues\n\nOUTPUT FORMAT:\nYou must return ONLY the complete fixed Python code.\nDo not include any explanations before or after the code.\nDo not use markdown code blocks - just return the raw Python code.\nThe code must be complete and ready to save to a file.\n\nFix the following Python code based on the identified issues.\n\n**File**: bad.py\n\n**Issues to Fix**:\n- Line 62: [ERROR] Unnecessary \"elif\" after \"return\". The `else` block is redundant because the function already returns in the `elif` block.\n  Suggested fix: ```diff\n- Line 91: [ERROR] Redundant comparison `num > num`. This comparison will always be false and serves no purpose. It's likely intended to check for comparability, but it's done incorrectly.\n  Suggested fix: ```diff\n- Line N/A: [ERROR] a/bad.py\n+++ b/bad.py\n@@ -88,10 +88,10 @@\n     \"\"\"Find the maximum value in a list.\"\"\"\n     if not numbers:\n         raise ValueError(\"Cannot find the maximum of an empty list\")\n-    for num in number\n  Suggested fix: \n- Line 93: [ERROR] `raise TypeError(\"List contains non-comparable values\")` should re-raise the original exception using `raise ... from ...` to preserve the traceback.\n  Suggested fix: ```diff\n- Line N/A: [ERROR] a/bad.py\n+++ b/bad.py\n@@ -88,10 +88,10 @@\n     \"\"\"Find the maximum value in a list.\"\"\"\n     if not numbers:\n         raise ValueError(\"Cannot find the maximum of an empty list\")\n-    for num in number\n  Suggested fix: \n\n**Original Code**:\n```python\n\"\"\"\nCalculator Module - A simple calculator with intentional bugs for testing.\n\"\"\"\n\n\ndef add(a, b):\n    \"\"\"Add two numbers together.\"\"\"\n    return a + b\n\n\ndef subtract(a, b):\n    \"\"\"Subtract b from a.\"\"\"\n    return a - b\n\n\ndef multiply(a, b):\n    \"\"\"Multiply two numbers.\"\"\"\n    return a * b\n\n\ndef divide(a, b):\n    \"\"\"Divide a by b.\"\"\"\n    if b == 0:\n        raise ZeroDivisionError(\"Cannot divide by zero\")\n    return a / b\n\n\ndef power(base, exponent):\n    \"\"\"Calculate base raised to exponent.\"\"\"\n    if base == 0 and exponent < 0:\n        raise ZeroDivisionError(\"0 raised to a negative power is undefined\")\n    result = 1\n    if exponent >= 0:\n        for _ in range(exponent):\n            result *= base\n    else:\n        result = 1.0\n        for _ in range(-exponent):\n            result /= base\n    return result\n\n\ndef factorial(n):\n    \"\"\"Calculate factorial of n.\"\"\"\n    if n < 0:\n        return None\n    if n == 0:\n        return 1\n    result = 1\n    for i in range(1, n + 1):\n        result *= i\n    return result\n\n\ndef is_even(number):\n    \"\"\"Check if a number is even.\"\"\"\n    return number % 2 == 0\n\n\ndef fibonacci(n):\n    \"\"\"Return the nth Fibonacci number.\"\"\"\n    if n <= 0:\n        return 0\n    elif n == 1:\n        return 1\n    else:\n        a, b = 0, 1\n        for _ in range(2, n + 1):\n            a, b = b, a + b\n        return b\n\n\ndef average(numbers):\n    \"\"\"Calculate the average of a list of numbers.\"\"\"\n    if not numbers:\n        raise ValueError(\"Cannot calculate the average of an empty list\")\n    total = 0\n    for num in numbers:\n        if not isinstance(num, (int, float)):\n            raise TypeError(\"List contains non-numeric values\")\n        total += num\n    return total / len(numbers)\n\n\ndef find_max(numbers):\n    \"\"\"Find the maximum value in a list.\"\"\"\n    if not numbers:\n        raise ValueError(\"Cannot find the maximum of an empty list\")\n    for num in numbers:\n        try:\n            num > num\n        except TypeError:\n            raise TypeError(\"List contains non-comparable values\")\n    return max(numbers)\n```\n\nApply MINIMAL fixes to address the issues listed above.\nReturn ONLY the complete fixed Python code, nothing else.\nDo not include markdown code blocks or explanations.",
+            "output_response": "\"\"\"\nCalculator Module - A simple calculator with intentional bugs for testing.\n\"\"\"\n\n\ndef add(a, b):\n    \"\"\"Add two numbers together.\"\"\"\n    return a + b\n\n\ndef subtract(a, b):\n    \"\"\"Subtract b from a.\"\"\"\n    return a - b\n\n\ndef multiply(a, b):\n    \"\"\"Multiply two numbers.\"\"\"\n    return a * b\n\n\ndef divide(a, b):\n    \"\"\"Divide a by b.\"\"\"\n    if b == 0:\n        raise ZeroDivisionError(\"Cannot divide by zero\")\n    return a / b\n\n\ndef power(base, exponent):\n    \"\"\"Calculate base raised to exponent.\"\"\"\n    if base == 0 and exponent < 0:\n        raise ZeroDivisionError(\"0 raised to a negative power is undefined\")\n    result = 1\n    if exponent >= 0:\n        for _ in range(exponent):\n            result *= base\n    else:\n        result = 1.0\n        for _ in range(-exponent):\n            result /= base\n    return result\n\n\ndef factorial(n):\n    \"\"\"Calculate factorial of n.\"\"\"\n    if n < 0:\n        return None\n    if n == 0:\n        return 1\n    result = 1\n    for i in range(1, n + 1):\n        result *= i\n    return result\n\n\ndef is_even(number):\n    \"\"\"Check if a number is even.\"\"\"\n    return number % 2 == 0\n\n\ndef fibonacci(n):\n    \"\"\"Return the nth Fibonacci number.\"\"\"\n    if n <= 0:\n        return 0\n    elif n == 1:\n        return 1\n    else:\n        a, b = 0, 1\n        for _ in range(2, n + 1):\n            a, b = b, a + b\n        return b\n\n\ndef average(numbers):\n    \"\"\"Calculate the average of a list of numbers.\"\"\"\n    if not numbers:\n        raise ValueError(\"Cannot calculate the average of an empty list\")\n    total = 0\n    for num in numbers:\n        if not isinstance(num, (int, float)):\n            raise TypeError(\"List contains non-numeric values\")\n        total += num\n    return total / len(numbers)\n\n\ndef find_max(numbers):\n    \"\"\"Find the maximum value in a list.\"\"\"\n    if not numbers:\n        raise ValueError(\"Cannot find the maximum of an empty list\")\n    for num in numbers:\n        try:\n            num > 1\n        except TypeError as e:\n            raise TypeError(\"List contains non-comparable values\") from e\n    return max(numbers)",
+            "issues_addressed": 5,
+            "original_length": 2057,
+            "fixed_length": 2067
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "dc6d1773-1988-4bd4-a68f-f3177d3bbbd9",
+        "timestamp": "2026-01-30T14:52:51.395591",
+        "agent": "Judge_Agent",
+        "model": "gemini-2.0-flash",
+        "action": "CODE_GEN",
+        "details": {
+            "iteration": 1,
+            "input_prompt": "Deterministic test generation based on discovered modules. (No LLM calls; designed to be fast and non-hanging.)",
+            "output_response": "import os\nimport sys\nimport multiprocessing as mp\n\nimport pytest\n\nsys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))\n\ndef _run_target(queue, fn, args, kwargs):\n    try:\n        queue.put(('ok', fn(*args, **kwargs)))\n    except BaseException as e:\n        queue.put(('err', repr(e)))\n\ndef run_with_timeout(fn, *args, timeout_s=1.0, **kwargs):\n    queue = mp.Queue()\n    p = mp.Process(target=_run_target, args=(queue, fn, args, kwargs))\n    p.start()\n    p.join(timeout_s)\n    if p.is_alive():\n        p.terminate()\n        p.join(0.2)\n        raise TimeoutError(f'Call timed out after {timeout_s}s')\n    status, payload = queue.get() if not queue.empty() else ('err', 'No result')\n    if status == 'err':\n        raise AssertionError(payload)\n    return payload\n\nimport os\nimport sys\n\n# Ensure imports work when tests are in a subfolder\nsys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))\n\nimport pytest\n\nimport bad\n\ndef test_imports_smoke():\n    # If this fails, there is likely a SyntaxError/ImportError in the codebase\n    assert True\n",
+            "generated_tests_path": "/home/khalil/igl/refactoring-swarm-template/sandbox/_generated_tests/test_generated.py"
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "188cceab-ef46-43af-bf6b-dd5dc2a838ea",
+        "timestamp": "2026-01-30T14:52:52.874274",
+        "agent": "Judge_Agent",
+        "model": "gemini-2.0-flash",
+        "action": "DEBUG",
+        "details": {
+            "iteration": 1,
+            "input_prompt": "Evaluate code in /home/khalil/igl/refactoring-swarm-template/sandbox",
+            "output_response": "✅ All tests passed! Pytest: 1 passed. Pylint score: 9.66/10.",
+            "tests_passed": true,
+            "pytest_passed": 1,
+            "pytest_failed": 0,
+            "pytest_errors": 0,
+            "pylint_score": 9.66,
+            "recommendation": "PASS"
+        },
+        "status": "SUCCESS"
+    },
+    {
+        "id": "bf4ba2be-06d3-434e-8a55-67d5876fd45c",
+        "timestamp": "2026-01-30T14:52:52.879203",
+        "agent": "Orchestrator",
+        "model": "system",
+        "action": "CODE_ANALYSIS",
+        "details": {
+            "event_type": "MISSION_COMPLETE",
+            "input_prompt": "System event: MISSION_COMPLETE",
+            "output_response": "Tests passed after 1 iterations. Pylint: 9.32 → 9.66",
+            "iteration": 1,
+            "target_dir": "/home/khalil/igl/refactoring-swarm-template/sandbox"
+        },
+        "status": "SUCCESS"
     }
 ]
