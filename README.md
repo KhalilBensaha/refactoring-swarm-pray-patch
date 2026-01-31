@@ -1,4 +1,4 @@
-# Refactoring Swarm Template
+# Refactoring Swarm patch & pray 
 
 Multi-agent Python code repair loop (Auditor → Fixer → Judge) designed for the IGL practical session (2025–2026).
 
