@@ -12,6 +12,5 @@ venv/
 sandbox/
 
 # LOGS : On ignore tout le dossier logs...
-logs/*
 # ...SAUF le fichier de données final qu'on veut récupérer
 !logs/experiment_data.json
